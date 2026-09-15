@@ -438,7 +438,7 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
+ <!-- JAVASCRIPT LOGIC WITH SUPABASE INTEGRATION -->
   <script>
     const studentNames = [
       "Б. Алтангадас", "Т. Амарбаясгалан", "Х. Амин-Эрдэнэ", "Ц. Амин-Эрдэнэ", "М. Анужин",
@@ -467,13 +467,10 @@
       };
     });
 
-    let newsData = JSON.parse(localStorage.getItem('news_10v')) || [
-      { id: 1, title: "Ангийн хурал болон хичээлийн шинэ жил", desc: "Нийт сурагчид болон эцэг эхчүүдэд амжилт хүсье!", img: "https://picsum.photos/600/350?random=1", video: "", link: "", ratio: "16:9", date: "2026-09-01" }
-    ];
-
-    let achieveData = JSON.parse(localStorage.getItem('achieve_10v')) || [
-      { id: 1, title: "Волейболын тэмцээний Тэргүүн байр", desc: "Манай ангийн баг тамирчид сургуулийн аваргын цом хүртлээ!", img: "https://picsum.photos/600/350?random=2", video: "", link: "", ratio: "16:9", date: "2026-09-10" }
-    ];
+    let newsData = [];
+    let achieveData = [];
+    let reportsData = [];
+    let suggestionsData = [];
 
     let scheduleData = JSON.parse(localStorage.getItem('schedule_10v')) || {
       "Даваа": ["Математик", "Физик", "Монгол хэл", "Англи хэл", "Биологи", "Түүх", "Биеийн тамир", "Сонгон: Математик"],
@@ -491,18 +488,29 @@
       "Баасан": { names: ["Билгүүн", "Д. Буянбат"], rating: 4 }
     };
 
-    let reportsData = JSON.parse(localStorage.getItem('reports_10v')) || [
-      { id: 1, title: "1-р улирлын сурлагын болон ирцийн тайлан", content: "Ангийн нийт сурагчдын ирц 98% байна.", img: "https://picsum.photos/600/300?random=3", video: "", date: "2026-09-12" }
-    ];
-
-    let suggestionsData = JSON.parse(localStorage.getItem('sug_10v')) || [
-      { id: 1, author: "Эцэг эхийн зөвлөл", text: "Спортын өдөрлөгт зориулж ангиараа ижил хувцастай болох саналтай байна.", date: "2026-09-14" }
-    ];
-
     let teacherNotes = JSON.parse(localStorage.getItem('notes_obj_10v')) || {
       text: "Энэ 7 хоногт сурагчдын ирц болон дүрэмт хувцсанд анхаарал тавих.",
       img: ""
     };
+
+    // --- SUPABASE DATA FETCHING ---
+    async function fetchSupabaseData() {
+      try {
+        const { data, error } = await _supabase.from('class_data').select('*').order('created_at', { ascending: false });
+        if (error) {
+          console.error("Supabase data fetch error:", error);
+          return;
+        }
+        if (data) {
+          newsData = data.filter(item => item.category === 'news').map(i => ({ ...i, desc: i.content || i.desc }));
+          achieveData = data.filter(item => item.category === 'achieve').map(i => ({ ...i, desc: i.content || i.desc }));
+          reportsData = data.filter(item => item.category === 'reports');
+          suggestionsData = data.filter(item => item.category === 'sug');
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    }
 
     function readFileAsBase64(file) {
       return new Promise((resolve, reject) => {
@@ -529,16 +537,13 @@
     function saveData() {
       localStorage.setItem('subjects_10v', JSON.stringify(subjects));
       localStorage.setItem('students_10v', JSON.stringify(students));
-      localStorage.setItem('news_10v', JSON.stringify(newsData));
-      localStorage.setItem('achieve_10v', JSON.stringify(achieveData));
       localStorage.setItem('schedule_10v', JSON.stringify(scheduleData));
       localStorage.setItem('duty_10v', JSON.stringify(dutyData));
-      localStorage.setItem('reports_10v', JSON.stringify(reportsData));
-      localStorage.setItem('sug_10v', JSON.stringify(suggestionsData));
       localStorage.setItem('notes_obj_10v', JSON.stringify(teacherNotes));
     }
 
-    window.onload = function() {
+    window.onload = async function() {
+      await fetchSupabaseData();
       renderNews();
       renderAchievements();
       renderSchedule();
@@ -640,21 +645,21 @@
       }
 
       if (currentUserRole === 'teacher') {
-        addNewsBtn.classList.remove('hidden');
-        addAchieveBtn.classList.remove('hidden');
-        editScheduleBtn.classList.remove('hidden');
-        manageSubjectsBtn.classList.remove('hidden');
-        teacherNotesArea.removeAttribute('disabled');
-        saveNotesBtnWrapper.classList.remove('hidden');
-        addReportBtn.classList.remove('hidden');
+        if(addNewsBtn) addNewsBtn.classList.remove('hidden');
+        if(addAchieveBtn) addAchieveBtn.classList.remove('hidden');
+        if(editScheduleBtn) editScheduleBtn.classList.remove('hidden');
+        if(manageSubjectsBtn) manageSubjectsBtn.classList.remove('hidden');
+        if(teacherNotesArea) teacherNotesArea.removeAttribute('disabled');
+        if(saveNotesBtnWrapper) saveNotesBtnWrapper.classList.remove('hidden');
+        if(addReportBtn) addReportBtn.classList.remove('hidden');
       } else {
-        addNewsBtn.classList.add('hidden');
-        addAchieveBtn.classList.add('hidden');
-        editScheduleBtn.classList.add('hidden');
-        manageSubjectsBtn.classList.add('hidden');
-        teacherNotesArea.setAttribute('disabled', 'true');
-        saveNotesBtnWrapper.classList.add('hidden');
-        addReportBtn.classList.add('hidden');
+        if(addNewsBtn) addNewsBtn.classList.add('hidden');
+        if(addAchieveBtn) addAchieveBtn.classList.add('hidden');
+        if(editScheduleBtn) editScheduleBtn.classList.add('hidden');
+        if(manageSubjectsBtn) manageSubjectsBtn.classList.add('hidden');
+        if(teacherNotesArea) teacherNotesArea.setAttribute('disabled', 'true');
+        if(saveNotesBtnWrapper) saveNotesBtnWrapper.classList.add('hidden');
+        if(addReportBtn) addReportBtn.classList.add('hidden');
       }
 
       renderNews();
@@ -669,6 +674,11 @@
 
     function renderNews() {
       const container = document.getElementById('newsFeed');
+      if (!container) return;
+      if (newsData.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm col-span-full text-center py-8">Мэдээлэл байхгүй байна.</p>`;
+        return;
+      }
       container.innerHTML = newsData.map(item => `
         <div class="bg-slate-900/80 rounded-2xl overflow-hidden border border-white/10 shadow-xl flex flex-col justify-between">
           <div>
@@ -681,9 +691,9 @@
             ) : ''}
 
             <div class="p-5 space-y-2">
-              <span class="text-xs text-cyan-400 font-semibold block">${item.date}</span>
+              <span class="text-xs text-cyan-400 font-semibold block">${item.date || ''}</span>
               <h3 class="text-lg font-bold text-white">${item.title}</h3>
-              <p class="text-gray-300 text-sm leading-relaxed">${item.desc}</p>
+              <p class="text-gray-300 text-sm leading-relaxed">${item.content || item.desc || ''}</p>
 
               ${item.link ? `
                 <div class="pt-2">
@@ -696,7 +706,7 @@
           </div>
           ${currentUserRole === 'teacher' ? `
             <div class="p-3 bg-slate-800/50 text-right border-t border-white/5">
-              <button onclick="deleteNews(${item.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+              <button onclick="deleteItem(${item.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
             </div>
           ` : ''}
         </div>
@@ -705,19 +715,24 @@
 
     function renderAchievements() {
       const container = document.getElementById('achieveFeed');
+      if (!container) return;
+      if (achieveData.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm col-span-full text-center py-8">Амжилтын мэдээлэл байхгүй байна.</p>`;
+        return;
+      }
       container.innerHTML = achieveData.map(item => `
         <div class="bg-slate-900/80 rounded-2xl overflow-hidden border border-white/10 shadow-xl flex flex-col justify-between">
           <div>
             ${item.img ? `<img src="${item.img}" class="w-full ${item.ratio === '9:16' ? 'h-80 object-cover' : 'h-48 object-cover'}" />` : ''}
             <div class="p-5">
-              <span class="text-xs text-amber-400 font-semibold">${item.date}</span>
+              <span class="text-xs text-amber-400 font-semibold">${item.date || ''}</span>
               <h3 class="text-lg font-bold text-white mt-1 mb-2">${item.title}</h3>
-              <p class="text-gray-300 text-sm">${item.desc}</p>
+              <p class="text-gray-300 text-sm">${item.content || item.desc || ''}</p>
             </div>
           </div>
           ${currentUserRole === 'teacher' ? `
             <div class="p-3 bg-slate-800/50 text-right">
-              <button onclick="deleteAchievement(${item.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+              <button onclick="deleteItem(${item.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
             </div>
           ` : ''}
         </div>
@@ -734,6 +749,7 @@
       document.getElementById('postModal').classList.remove('hidden');
     }
 
+    // --- SUPABASE SAVE FUNCTION ---
     async function savePost() {
       const type = document.getElementById('postType').value;
       const title = document.getElementById('postTitle').value;
@@ -742,7 +758,8 @@
       const videoFileInput = document.getElementById('postVideoFile');
       const videoUrlInput = document.getElementById('postVideoUrl').value;
       const linkInput = document.getElementById('postLink').value;
-      const ratio = document.querySelector('input[name="aspectRatio"]:checked').value;
+      const ratioEl = document.querySelector('input[name="aspectRatio"]:checked');
+      const ratio = ratioEl ? ratioEl.value : '16:9';
 
       if (!title) return alert("Гарчиг оруулна уу!");
 
@@ -756,45 +773,52 @@
         video = await readFileAsBase64(videoFileInput.files[0]);
       }
 
-      const newItem = {
-        id: Date.now(),
-        title,
-        desc,
-        img,
-        video,
-        link: linkInput.trim(),
-        ratio,
-        date: new Date().toISOString().split('T')[0]
-      };
+      const category = type === 'news' ? 'news' : 'achieve';
+      const todayDate = new Date().toISOString().split('T')[0];
 
-      if (type === 'news') {
-        newsData.unshift(newItem);
-        renderNews();
+      // Insert directly into Supabase
+      const { data, error } = await _supabase.from('class_data').insert([{
+        category: category,
+        title: title,
+        content: desc,
+        img: img,
+        video: video,
+        link: linkInput.trim(),
+        ratio: ratio,
+        date: todayDate
+      }]);
+
+      if (error) {
+        alert('Хадгалахад алдаа гарлаа: ' + error.message);
       } else {
-        achieveData.unshift(newItem);
+        alert('Амжилттай хадгалагдлаа!');
+        closeModal('postModal');
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postDesc').value = '';
+        document.getElementById('postVideoUrl').value = '';
+        document.getElementById('postLink').value = '';
+        fileInput.value = '';
+        videoFileInput.value = '';
+        
+        await fetchSupabaseData();
+        renderNews();
         renderAchievements();
       }
-
-      saveData();
-      closeModal('postModal');
-      document.getElementById('postTitle').value = '';
-      document.getElementById('postDesc').value = '';
-      document.getElementById('postVideoUrl').value = '';
-      document.getElementById('postLink').value = '';
-      fileInput.value = '';
-      videoFileInput.value = '';
     }
 
-    function deleteNews(id) {
-      newsData = newsData.filter(i => i.id !== id);
-      saveData();
-      renderNews();
-    }
-
-    function deleteAchievement(id) {
-      achieveData = achieveData.filter(i => i.id !== id);
-      saveData();
-      renderAchievements();
+    // --- SUPABASE DELETE FUNCTION ---
+    async function deleteItem(id) {
+      if (!confirm("Энэ мэдээллийг устгахдаа итгэлтэй байна уу?")) return;
+      const { error } = await _supabase.from('class_data').delete().eq('id', id);
+      if (error) {
+        alert('Устгахад алдаа гарлаа: ' + error.message);
+      } else {
+        alert('Амжилттай устгагдлаа!');
+        await fetchSupabaseData();
+        renderNews();
+        renderAchievements();
+        renderReports();
+      }
     }
 
     function openScheduleEditModal() {
@@ -838,6 +862,7 @@
 
     function renderSchedule() {
       const container = document.getElementById('scheduleGrid');
+      if (!container) return;
       container.innerHTML = Object.keys(scheduleData).map(day => {
         const style = colorfulDayStyles[day] || colorfulDayStyles["Даваа"];
         return `
@@ -867,6 +892,7 @@
 
     function renderDuty() {
       const container = document.getElementById('dutyGrid');
+      if (!container) return;
       container.innerHTML = Object.keys(dutyData).map(day => {
         const item = dutyData[day];
         const style = colorfulDayStyles[day] || colorfulDayStyles["Даваа"];
@@ -943,15 +969,17 @@
       const tableWrapper = document.getElementById('gradeTableWrapper');
       const banner = document.getElementById('gradeNoticeBanner');
 
+      if (!thead || !tbody) return;
+
       if (currentUserRole === 'guest') {
-        tableWrapper.classList.add('hidden');
-        document.getElementById('chartCard').classList.add('hidden');
-        banner.classList.remove('hidden');
+        if(tableWrapper) tableWrapper.classList.add('hidden');
+        if(document.getElementById('chartCard')) document.getElementById('chartCard').classList.add('hidden');
+        if(banner) banner.classList.remove('hidden');
         return;
       }
 
-      banner.classList.add('hidden');
-      tableWrapper.classList.remove('hidden');
+      if(banner) banner.classList.add('hidden');
+      if(tableWrapper) tableWrapper.classList.remove('hidden');
 
       thead.innerHTML = `
         <tr>
@@ -966,7 +994,7 @@
       let displayStudents = [];
       if (currentUserRole === 'teacher') {
         displayStudents = students;
-        document.getElementById('chartCard').classList.add('hidden');
+        if(document.getElementById('chartCard')) document.getElementById('chartCard').classList.add('hidden');
       } else if (currentUserRole === 'student' && currentStudentIndex !== null) {
         displayStudents = [students[currentStudentIndex]];
         renderStudentChart(students[currentStudentIndex]);
@@ -994,6 +1022,7 @@
     }
 
     function renderStudentChart(student) {
+      if(!document.getElementById('chartCard')) return;
       document.getElementById('chartCard').classList.remove('hidden');
       document.getElementById('studentChartTitle').textContent = `📊 ${student.name} - Өөрийн сурлагын үзүүлэлт (Ангийн ранк: #${student.rank}, Дундаж: ${student.avg.toFixed(1)})`;
 
@@ -1035,6 +1064,7 @@
 
     function renderSubjectList() {
       const container = document.getElementById('subjectList');
+      if(!container) return;
       container.innerHTML = subjects.map((sub, idx) => `
         <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-xl border border-slate-700">
           <span class="text-white text-sm font-semibold">${sub}</span>
@@ -1096,15 +1126,18 @@
     }
 
     function renderNotes() {
-      document.getElementById('teacherNotesArea').value = teacherNotes.text || "";
+      const area = document.getElementById('teacherNotesArea');
+      if (area) area.value = teacherNotes.text || "";
       const imgContainer = document.getElementById('notesImgContainer');
       const imgPreview = document.getElementById('notesImgPreview');
 
-      if (teacherNotes.img) {
-        imgPreview.src = teacherNotes.img;
-        imgContainer.classList.remove('hidden');
-      } else {
-        imgContainer.classList.add('hidden');
+      if (imgContainer && imgPreview) {
+        if (teacherNotes.img) {
+          imgPreview.src = teacherNotes.img;
+          imgContainer.classList.remove('hidden');
+        } else {
+          imgContainer.classList.add('hidden');
+        }
       }
     }
 
@@ -1125,144 +1158,45 @@
 
     function renderReports() {
       const container = document.getElementById('reportsFeed');
+      if (!container) return;
+      if (reportsData.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">Тайлан мэдээлэл байхгүй байна.</p>`;
+        return;
+      }
       container.innerHTML = reportsData.map(rep => `
         <div class="bg-slate-900/80 rounded-2xl p-6 border border-white/10 shadow-xl space-y-4">
           <div class="flex justify-between items-start">
             <div>
-              <span class="text-xs text-blue-400 font-semibold">${rep.date}</span>
+              <span class="text-xs text-blue-400 font-semibold">${rep.date || ''}</span>
               <h3 class="text-xl font-bold text-white mt-1">${rep.title}</h3>
             </div>
             ${currentUserRole === 'teacher' ? `
-              <button onclick="deleteReport(${rep.id})" class="text-xs px-3 py-1 bg-red-600/80 text-white rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+              <button onclick="deleteItem(${rep.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
             ` : ''}
           </div>
-          <p class="text-gray-300 text-sm leading-relaxed">${rep.content}</p>
+          <p class="text-gray-300 text-sm leading-relaxed">${rep.content || ''}</p>
           ${rep.img ? `<img src="${rep.img}" class="rounded-xl w-full max-h-96 object-cover" />` : ''}
-          ${rep.video ? `<div class="p-3 bg-slate-800 rounded-xl text-cyan-400 text-xs truncate"><i class="fa-solid fa-video mr-2"></i>Видео линк: <a href="${rep.video}" target="_blank" class="underline">${rep.video}</a></div>` : ''}
         </div>
       `).join('');
-    }
-
-    function openReportModal() { 
-      document.getElementById('reportImgFile').value = '';
-      document.getElementById('reportModal').classList.remove('hidden'); 
-    }
-
-    async function saveReport() {
-      const title = document.getElementById('reportTitle').value;
-      const content = document.getElementById('reportContent').value;
-      const fileInput = document.getElementById('reportImgFile');
-      const video = document.getElementById('reportVideo').value;
-
-      if (!title) return alert("Гарчиг бичнэ үү!");
-
-      let img = "";
-      if (fileInput.files && fileInput.files[0]) {
-        img = await readFileAsBase64(fileInput.files[0]);
-      }
-
-      reportsData.unshift({ id: Date.now(), title, content, img, video, date: new Date().toISOString().split('T')[0] });
-      saveData();
-      renderReports();
-      closeModal('reportModal');
-      document.getElementById('reportTitle').value = '';
-      document.getElementById('reportContent').value = '';
-      fileInput.value = '';
-    }
-
-    function deleteReport(id) {
-      reportsData = reportsData.filter(r => r.id !== id);
-      saveData();
-      renderReports();
     }
 
     function renderSuggestions() {
       const container = document.getElementById('suggestionsFeed');
+      if(!container) return;
+      if (suggestionsData.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">Санал хүсэлт байхгүй байна.</p>`;
+        return;
+      }
       container.innerHTML = suggestionsData.map(sug => `
-        <div class="bg-slate-900/80 rounded-2xl p-5 border border-white/10 shadow-xl flex flex-col justify-between">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-bold text-purple-300"><i class="fa-solid fa-user-pen mr-1.5"></i>${sug.author}</span>
-              <span class="text-xs text-gray-400">${sug.date}</span>
-            </div>
-            <p class="text-gray-300 text-sm italic">"${sug.text}"</p>
+        <div class="bg-slate-900/80 rounded-2xl p-4 border border-white/10 shadow-lg space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-cyan-400 font-bold">${sug.title || sug.author || 'Санал'}</span>
+            <span class="text-gray-400">${sug.date || ''}</span>
           </div>
-          ${currentUserRole === 'teacher' ? `
-            <div class="mt-3 pt-2 border-t border-slate-800 text-right">
-              <button onclick="deleteSuggestion(${sug.id})" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
-            </div>
-          ` : ''}
+          <p class="text-gray-200 text-sm">${sug.content || sug.text || ''}</p>
         </div>
       `).join('');
     }
-
-    function openSuggestionModal() { document.getElementById('suggestionModal').classList.remove('hidden'); }
-    function saveSuggestion() {
-      const author = document.getElementById('sugAuthor').value || "Ажиглагч";
-      const text = document.getElementById('sugText').value;
-
-      if (!text) return alert("Саналаа бичнэ үү!");
-
-      suggestionsData.unshift({ id: Date.now(), author, text, date: new Date().toISOString().split('T')[0] });
-      saveData();
-      renderSuggestions();
-      closeModal('suggestionModal');
-      document.getElementById('sugAuthor').value = '';
-      document.getElementById('sugText').value = '';
-    }
-function deleteSuggestion(id) {
-        suggestionsData = suggestionsData.filter(s => s.id !== id);
-        saveData();
-        renderSuggestions();
-    }
-
-    // --- SUPABASE ХОЛБОЛТ БОЛОН ФУНКЦҮҮД ---
-    const SUPABASE_URL = 'https://nkybwoafisbbtsekfprr.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Hy_HZL50A3t7-D6L244nDw_03qLCDqf';
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // 1. Мэдээлэл баазаас унших
-    async function loadCategoryData(category) {
-      const { data, error } = await _supabase
-        .from('class_data')
-        .select('*')
-        .eq('category', category)
-        .order('id', { ascending: false });
-
-      if (error) {
-        console.error('Алдаа:', error.message);
-        return [];
-      }
-      return data;
-    }
-
-    // 2. Мэдээлэл бааз руу хадгалах
-    async function saveCategoryData(category, title, content, date) {
-      const { error } = await _supabase
-        .from('class_data')
-        .insert([{ category, title, content, date }]);
-
-      if (error) {
-        alert('Хадгалахад алдаа гарлаа: ' + error.message);
-      } else {
-        alert('Амжилттай хадгалагдлаа!');
-        location.reload();
-      }
-    }
-
-    // 3. Мэдээлэл баазаас устгах
-    async function deleteCategoryData(id) {
-      const { error } = await _supabase
-        .from('class_data')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        alert('Устгахад алдаа гарлаа: ' + error.message);
-      } else {
-        location.reload();
-      }
-    }
-</script>
+  </script>
 </body>
 </html>
