@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="mn" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Эрдмийн Далай Сургууль - 10В Ангийн Систем</title>
+  
+  <!-- Tailwind CSS & Chart.js & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#06b6d4',
+              600: '#0284c7',
+              900: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+    .floating-icon {
+      animation: float 4s ease-in-out infinite;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 dark:text-gray-100 min-h-screen font-sans transition-colors duration-300 relative overflow-x-hidden">
+
+  <!-- Background Floating Icons -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-20 dark:opacity-10">
+    <i class="fa-solid fa-graduation-cap text-cyan-400 text-6xl absolute top-12 left-10 floating-icon"></i>
+    <i class="fa-solid fa-book-open text-purple-400 text-5xl absolute top-1/4 right-12 floating-icon" style="animation-delay: 1s;"></i>
+    <i class="fa-solid fa-atom text-pink-400 text-7xl absolute bottom-1/3 left-16 floating-icon" style="animation-delay: 2s;"></i>
+    <i class="fa-solid fa-award text-amber-400 text-6xl absolute bottom-12 right-20 floating-icon" style="animation-delay: 1.5s;"></i>
+    <i class="fa-solid fa-microscope text-emerald-400 text-5xl absolute top-2/3 right-1/3 floating-icon" style="animation-delay: 2.5s;"></i>
+  </div>
+
+  <!-- Main Container -->
+  <div class="relative z-10 max-w-7xl mx-auto px-4 py-6 flex flex-col min-h-screen">
+
+    <!-- HEADER SECTION -->
+    <header class="flex flex-col md:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-2xl mb-6">
+      
+      <!-- Static Logo + Colorful Title -->
+      <div class="flex items-center gap-4 text-center md:text-left">
+        <div class="relative">
+          <img src="https://i.postimg.cc/qqmz8rXz/488045816-122105749208816529-1525059595900832241-n.jpg" 
+               alt="Сургуулийн Лого" 
+               class="w-16 h-16 rounded-full border-2 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.6)] object-cover" />
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-pink-400 via-cyan-300 to-emerald-400 drop-shadow-md">
+            Эрдмийн Далай Сургууль
+          </h1>
+          <p class="text-sm md:text-base font-semibold text-cyan-300 tracking-wider flex items-center justify-center md:justify-start gap-2 mt-0.5">
+            <span>✨ 10В Ангийн Нэгдсэн Систем</span>
+            <span id="roleBadge" class="px-2.5 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300 border border-slate-700">Зочин</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="flex items-center gap-3 no-print">
+        <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-amber-400 border border-slate-700 transition shadow-lg">
+          <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+        </button>
+        
+        <div id="authButtons" class="flex items-center gap-2">
+          <button onclick="openStudentLoginModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-[0_0_15px_rgba(6,182,212,0.4)] transition">
+            <i class="fa-solid fa-user-graduate mr-1.5"></i>Сурагч
+          </button>
+          <button onclick="openTeacherLoginModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)] transition">
+            <i class="fa-solid fa-chalkboard-user mr-1.5"></i>Багш
+          </button>
+        </div>
+        
+        <button id="logoutBtn" onclick="logout()" class="hidden px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-sm shadow-lg transition">
+          <i class="fa-solid fa-right-from-bracket mr-1.5"></i>Гарах
+        </button>
+      </div>
+    </header>
+
+    <!-- NAVIGATION MENU -->
+    <nav class="relative mb-6 no-print flex items-center bg-slate-900/80 p-1.5 rounded-2xl border border-white/10 shadow-xl">
+      <button onclick="scrollTabs(-200)" class="z-10 p-2 text-cyan-400 hover:text-white bg-slate-800/90 rounded-xl transition">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+
+      <div id="tabContainer" class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth px-2 py-1 w-full">
+        <button onclick="switchTab('news')" id="tab-news" class="tab-btn active-tab flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition">
+          <i class="fa-solid fa-newspaper text-cyan-400"></i>Мэдээлэл
+        </button>
+        <button onclick="switchTab('achievements')" id="tab-achievements" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-trophy text-amber-400"></i>Амжилт бахархал
+        </button>
+        <button onclick="switchTab('schedule')" id="tab-schedule" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-calendar-days text-emerald-400"></i>Хичээлийн хуваарь
+        </button>
+        <button onclick="switchTab('duty')" id="tab-duty" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-broom text-pink-400"></i>Жижүүрийн хуваарь
+        </button>
+        <button onclick="switchTab('grades')" id="tab-grades" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-chart-column text-indigo-400"></i>Сурагчийн дүн
+        </button>
+        <button onclick="switchTab('notes')" id="tab-notes" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-note-sticky text-yellow-400"></i>Багшийн тэмдэглэл
+        </button>
+        <button onclick="switchTab('reports')" id="tab-reports" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-file-invoice text-blue-400"></i>Тайлан
+        </button>
+        <button onclick="switchTab('suggestions')" id="tab-suggestions" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition text-gray-400 hover:text-white">
+          <i class="fa-solid fa-comments text-purple-400"></i>Саналууд
+        </button>
+      </div>
+
+      <button onclick="scrollTabs(200)" class="z-10 p-2 text-cyan-400 hover:text-white bg-slate-800/90 rounded-xl transition">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </nav>
+
+    <!-- CONTENT SECTIONS -->
+    <main class="flex-grow">
+
+      <!-- 1. МЭДЭЭЛЭЛ -->
+      <section id="sec-news" class="tab-content block space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-cyan-300 flex items-center gap-2"><i class="fa-solid fa-bullhorn"></i> Ангийн мэдээлэл</h2>
+          <button id="addNewsBtn" onclick="openPostModal('news')" class="hidden px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-white font-bold text-sm shadow-lg transition">
+            <i class="fa-solid fa-plus mr-1"></i> Мэдээ оруулах
+          </button>
+        </div>
+        <div id="newsFeed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </section>
+
+      <!-- 2. АМЖИЛТ БАХАРХАЛ -->
+      <section id="sec-achievements" class="tab-content hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-trophy"></i> Ангийн амжилт бахархал</h2>
+          <button id="addAchieveBtn" onclick="openPostModal('achievements')" class="hidden px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-white font-bold text-sm shadow-lg transition">
+            <i class="fa-solid fa-plus mr-1"></i> Амжилт оруулах
+          </button>
+        </div>
+        <div id="achieveFeed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </section>
+
+      <!-- 3. ХИЧЭЭЛИЙН ХУВААРЬ -->
+      <section id="sec-schedule" class="tab-content hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-emerald-300 flex items-center gap-2">
+            <i class="fa-solid fa-calendar-days text-emerald-400"></i> Хичээлийн хуваарь (7 Цаг + Сонгон)
+          </h2>
+          <button id="editScheduleBtn" onclick="openScheduleEditModal()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+            <i class="fa-solid fa-pen mr-1"></i> Хуваарь засах
+          </button>
+        </div>
+        <div id="scheduleGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5"></div>
+      </section>
+
+      <!-- 4. ЖИЖҮҮРИЙН ХУВААРЬ -->
+      <section id="sec-duty" class="tab-content hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-pink-300 flex items-center gap-2">
+            <i class="fa-solid fa-broom text-pink-400"></i> Жижүүрийн хуваарь ба Үнэлгээ
+          </h2>
+        </div>
+        <div id="dutyGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5"></div>
+      </section>
+
+      <!-- 5. СУРАГЧИЙН ДҮН -->
+      <section id="sec-grades" class="tab-content hidden space-y-6">
+        <div class="flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-indigo-300 flex items-center gap-2"><i class="fa-solid fa-chart-column"></i> Сурагчийн дүн & Мэдээлэл</h2>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <button id="manageSubjectsBtn" onclick="openSubjectModal()" class="hidden px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-sm shadow-lg transition">
+              <i class="fa-solid fa-book-medical mr-1"></i> Хичээл нэмэх/хасах
+            </button>
+            <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-lg transition">
+              <i class="fa-solid fa-print mr-1"></i> Хэвлэх / PDF
+            </button>
+          </div>
+        </div>
+
+        <div id="gradeNoticeBanner" class="p-6 rounded-2xl bg-slate-900/80 border border-amber-500/30 text-center text-amber-300 font-bold hidden">
+          <i class="fa-solid fa-lock text-3xl mb-2 block"></i>
+          Дүнгийн мэдээллийг харахын тулд Сурагч эсвэл Багшийн эрхээр нэвтэрнэ үү.
+        </div>
+
+        <div id="chartCard" class="p-5 rounded-2xl bg-slate-900/80 border border-white/10 shadow-xl hidden">
+          <h3 id="studentChartTitle" class="text-lg font-bold text-cyan-300 mb-4 text-center"></h3>
+          <div class="h-64">
+            <canvas id="studentGradeChart"></canvas>
+          </div>
+        </div>
+
+        <div id="gradeTableWrapper" class="overflow-x-auto rounded-2xl border border-white/10 shadow-2xl bg-slate-900/80">
+          <table class="w-full text-left text-sm">
+            <thead id="gradeTableHead" class="bg-slate-800 text-cyan-300 border-b border-slate-700"></thead>
+            <tbody id="gradeTableBody" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 6. БАГШИЙН ТЭМДЭГЛЭЛ -->
+      <section id="sec-notes" class="tab-content hidden space-y-6">
+        <h2 class="text-2xl font-bold text-yellow-300 flex items-center gap-2"><i class="fa-solid fa-note-sticky"></i> Анги удирдсан багшийн тэмдэглэл</h2>
+        <div id="notesContainer" class="p-6 rounded-2xl bg-slate-900/80 border border-white/10 shadow-xl space-y-4">
+          <textarea id="teacherNotesArea" disabled class="w-full h-36 p-4 rounded-xl bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-yellow-400" placeholder="Багшийн сануулга, тэмдэглэл..."></textarea>
+          
+          <div id="notesImgContainer" class="hidden">
+            <img id="notesImgPreview" class="max-h-80 rounded-xl border border-slate-700 object-cover" />
+          </div>
+
+          <div id="saveNotesBtnWrapper" class="space-y-3 hidden">
+            <div>
+              <label class="text-xs text-gray-300 block mb-1"><i class="fa-solid fa-image mr-1"></i> Зураг хавсаргах (Утас / Компьютероос):</label>
+              <input type="file" id="notesImgFile" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-800 file:text-cyan-400 hover:file:bg-slate-700 cursor-pointer" />
+            </div>
+            <div class="text-right">
+              <button onclick="saveNotes()" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold rounded-xl shadow-lg transition">
+                Хадгалах
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. ТАЙЛАН -->
+      <section id="sec-reports" class="tab-content hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-blue-300 flex items-center gap-2"><i class="fa-solid fa-file-invoice"></i> Ангийн тайлан & Мэдээлэл</h2>
+          <div class="flex gap-2">
+            <button id="addReportBtn" onclick="openReportModal()" class="hidden px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+              <i class="fa-solid fa-plus mr-1"></i> Тайлан оруулах
+            </button>
+            <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+              <i class="fa-solid fa-print mr-1"></i> Хэвлэх
+            </button>
+          </div>
+        </div>
+        <div id="reportsFeed" class="space-y-6"></div>
+      </section>
+
+      <!-- 8. САНАЛУУД -->
+      <section id="sec-suggestions" class="tab-content hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-purple-300 flex items-center gap-2"><i class="fa-solid fa-comments"></i> Эцэг эх, сурагчдын санал хүсэлт</h2>
+          <button onclick="openSuggestionModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+            <i class="fa-solid fa-pen mr-1"></i> Санал бичих
+          </button>
+        </div>
+        <div id="suggestionsFeed" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-12 py-6 text-center text-xs text-gray-400 border-t border-white/10 no-print">
+      <p>© 2026 Эрдмийн Далай Сургууль, 10В Анги. Бүх сурлага, амжилтын төлөө!</p>
+    </footer>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Teacher Login Modal -->
+  <div id="teacherModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-purple-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-xl font-bold text-purple-300 mb-4 text-center"><i class="fa-solid fa-lock mr-2"></i>Багшийн нэвтрэх хэсэг</h3>
+      <input type="password" id="teacherPass" placeholder="Нууц код оруулна уу" class="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-purple-400" />
+      <div class="flex gap-2">
+        <button onclick="closeModal('teacherModal')" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="loginTeacher()" class="w-1/2 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold shadow-lg">Нэвтрэх</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Login Modal -->
+  <div id="studentModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-cyan-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-xl font-bold text-cyan-300 mb-4 text-center"><i class="fa-solid fa-id-card mr-2"></i>Сурагчийн нэвтрэх хэсэг</h3>
+      <input type="password" id="studentPass" placeholder="Нууц код оруулна уу" class="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-cyan-400" />
+      <div class="flex gap-2">
+        <button onclick="closeModal('studentModal')" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="loginStudent()" class="w-1/2 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold shadow-lg">Нэвтрэх</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Edit Modal for Teacher -->
+  <div id="scheduleEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-emerald-300 mb-4"><i class="fa-solid fa-pen-to-square mr-2"></i>Хичээлийн хуваарь засах</h3>
+      <div class="mb-4">
+        <label class="text-xs text-gray-300 block mb-1 font-bold">Гараг сонгох:</label>
+        <select id="scheduleDaySelect" onchange="loadScheduleDayInputs()" class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700 font-bold">
+          <option value="Даваа">Даваа</option>
+          <option value="Мягмар">Мягмар</option>
+          <option value="Лхагва">Лхагва</option>
+          <option value="Пүрэв">Пүрэв</option>
+          <option value="Баасан">Баасан</option>
+        </select>
+      </div>
+      <div id="scheduleInputsContainer" class="space-y-2 mb-4"></div>
+      <div class="flex gap-2">
+        <button onclick="closeModal('scheduleEditModal')" class="w-1/2 py-2.5 bg-slate-800 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="saveScheduleDay()" class="w-1/2 py-2.5 bg-emerald-600 text-white rounded-xl font-bold">Хадгалах</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post Modal (WITH IMAGE, VIDEO & LINK SUPPORT) -->
+  <div id="postModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-white/20 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 id="postModalTitle" class="text-xl font-bold text-cyan-300 mb-4">Мэдээлэл оруулах</h3>
+      <input type="hidden" id="postType" />
+      <div class="space-y-3">
+        <input type="text" id="postTitle" placeholder="Гарчиг" class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700" />
+        <textarea id="postDesc" placeholder="Дэлгэрэнгүй бичвэр..." class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700 h-24"></textarea>
+        
+        <!-- Image Upload -->
+        <div>
+          <label class="text-xs text-cyan-300 block mb-1 font-bold"><i class="fa-solid fa-image mr-1"></i> Зураг оруулах (Компьютер / Утаснаас):</label>
+          <input type="file" id="postImgFile" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-800 file:text-cyan-400 hover:file:bg-slate-700 cursor-pointer" />
+        </div>
+
+        <!-- Video Options -->
+        <div class="space-y-2 pt-1 border-t border-slate-800">
+          <label class="text-xs text-amber-300 block font-bold"><i class="fa-solid fa-video mr-1"></i> Бичлэг оруулах:</label>
+          <input type="text" id="postVideoUrl" placeholder="YouTube линк эсвэл Бичлэгийн URL байна" class="w-full p-2.5 rounded-xl bg-slate-800 text-white border border-slate-700 text-sm" />
+          <div class="text-center text-xs text-gray-400 font-bold">ЭСВЭЛ ФАЙЛ СУУЛГАХ:</div>
+          <input type="file" id="postVideoFile" accept="video/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700 cursor-pointer" />
+        </div>
+
+        <!-- Link Option -->
+        <div class="pt-1 border-t border-slate-800">
+          <label class="text-xs text-emerald-300 block mb-1 font-bold"><i class="fa-solid fa-link mr-1"></i> Холбоос / Веб линк нэмэх:</label>
+          <input type="url" id="postLink" placeholder="https://example.com" class="w-full p-2.5 rounded-xl bg-slate-800 text-white border border-slate-700 text-sm" />
+        </div>
+
+        <div class="flex gap-4 text-xs text-gray-400 pt-1">
+          <label><input type="radio" name="aspectRatio" value="16:9" checked /> 16:9 Landscape</label>
+          <label><input type="radio" name="aspectRatio" value="9:16" /> 9:16 Portrait</label>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="closeModal('postModal')" class="w-1/2 py-2.5 bg-slate-800 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="savePost()" class="w-1/2 py-2.5 bg-cyan-600 text-white rounded-xl font-bold">Нийтлэх</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject Modal -->
+  <div id="subjectModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-purple-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-xl font-bold text-purple-300 mb-4"><i class="fa-solid fa-book mr-2"></i>Хичээл удирдах</h3>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="newSubjectName" placeholder="Шинэ хичээлийн нэр" class="flex-grow p-2.5 rounded-xl bg-slate-800 text-white border border-slate-700" />
+        <button onclick="addSubject()" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl">Нэмэх</button>
+      </div>
+      <div id="subjectList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+      <button onclick="closeModal('subjectModal')" class="w-full mt-4 py-2.5 bg-slate-800 text-gray-300 rounded-xl font-bold">Хаах</button>
+    </div>
+  </div>
+
+  <!-- Grade Edit Modal -->
+  <div id="gradeEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+      <h3 id="gradeStudentName" class="text-xl font-bold text-indigo-300 mb-4"></h3>
+      <input type="hidden" id="gradeStudentIndex" />
+      <div id="gradeInputsContainer" class="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2"></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="closeModal('gradeEditModal')" class="w-1/2 py-2.5 bg-slate-800 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="saveStudentGrades()" class="w-1/2 py-2.5 bg-indigo-600 text-white rounded-xl font-bold">Хадгалах</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Modal -->
+  <div id="reportModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-blue-500/30 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+      <h3 class="text-xl font-bold text-blue-300 mb-4">Ангийн тайлан оруулах</h3>
+      <div class="space-y-3">
+        <input type="text" id="reportTitle" placeholder="Тайлангийн гарчиг" class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700" />
+        <textarea id="reportContent" placeholder="Тайлангийн дэлгэрэнгүй агуулга..." class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700 h-28"></textarea>
+        <div>
+          <label class="text-xs text-gray-300 block mb-1"><i class="fa-solid fa-image mr-1"></i> Зураг оруулах (Компьютер / Утаснаас):</label>
+          <input type="file" id="reportImgFile" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-800 file:text-blue-400 hover:file:bg-slate-700 cursor-pointer" />
+        </div>
+        <input type="text" id="reportVideo" placeholder="YouTube эсвэл Бичлэгийн линк" class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700" />
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="closeModal('reportModal')" class="w-1/2 py-2.5 bg-slate-800 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="saveReport()" class="w-1/2 py-2.5 bg-blue-600 text-white rounded-xl font-bold">Нийтлэх</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggestion Modal -->
+  <div id="suggestionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-purple-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-xl font-bold text-purple-300 mb-4">Санал хүсэлт бичих</h3>
+      <div class="space-y-3">
+        <input type="text" id="sugAuthor" placeholder="Нэр (Эцэг эх / Сурагч)" class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700" />
+        <textarea id="sugText" placeholder="Санал хүсэлтийн утга..." class="w-full p-3 rounded-xl bg-slate-800 text-white border border-slate-700 h-28"></textarea>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="closeModal('suggestionModal')" class="w-1/2 py-2.5 bg-slate-800 text-gray-300 rounded-xl font-bold">Цуцлах</button>
+        <button onclick="saveSuggestion()" class="w-1/2 py-2.5 bg-purple-600 text-white rounded-xl font-bold">Илгээх</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const studentNames = [
+      "Б. Алтангадас", "Т. Амарбаясгалан", "Х. Амин-Эрдэнэ", "Ц. Амин-Эрдэнэ", "М. Анужин",
+      "Э. Бат-Эгшиглэн", "Ч. Баярцэцэг", "Л. Баянмөнх", "Билгүүн", "Д. Буянбат",
+      "М. Буянхишигт", "П. Бямба-Эрдэнэ", "Г. Ган-Өлзий", "М. Дэлгэрцэцэг", "А. Ичинноров",
+      "Г. Лхамядаг", "Ц. Лхагвасүрэн", "О. Мандахнаран", "С. Марал", "Д. Мишээл",
+      "Э. Мишээл", "Д. Номинзул", "Б. Оюунтунгалаг", "П. Оюун-Эрдэнэ", "Г. Өсөхбаяр",
+      "Э. Сумьяабазар", "П. Түвшинжаргал", "С. Хишигдэлгэр", "Ц. Хулан", "Д. Цолмон",
+      "Т. Цэлмүүн", "Э. Цэрэнбаяр", "Л. Шинэбаяр", "Б. Энхболд", "Л. Энхзориг",
+      "Д. Энхтуул", "М. Эрхэс"
+    ];
+
+    let currentUserRole = 'guest';
+    let currentStudentIndex = null;
+    let studentChart = null;
+
+    let subjects = JSON.parse(localStorage.getItem('subjects_10v')) || ["Математик", "Физик", "Хими", "Монгол хэл", "Гадаад хэл", "Түүх"];
+    
+    let students = JSON.parse(localStorage.getItem('students_10v')) || studentNames.map((name, idx) => {
+      let grades = {};
+      subjects.forEach(sub => grades[sub] = Math.floor(Math.random() * 20) + 80);
+      return {
+        id: 1001 + idx,
+        name: name,
+        grades: grades
+      };
+    });
+
+    let newsData = JSON.parse(localStorage.getItem('news_10v')) || [
+      { id: 1, title: "Ангийн хурал болон хичээлийн шинэ жил", desc: "Нийт сурагчид болон эцэг эхчүүдэд амжилт хүсье!", img: "https://picsum.photos/600/350?random=1", video: "", link: "", ratio: "16:9", date: "2026-09-01" }
+    ];
+
+    let achieveData = JSON.parse(localStorage.getItem('achieve_10v')) || [
+      { id: 1, title: "Волейболын тэмцээний Тэргүүн байр", desc: "Манай ангийн баг тамирчид сургуулийн аваргын цом хүртлээ!", img: "https://picsum.photos/600/350?random=2", video: "", link: "", ratio: "16:9", date: "2026-09-10" }
+    ];
+
+    let scheduleData = JSON.parse(localStorage.getItem('schedule_10v')) || {
+      "Даваа": ["Математик", "Физик", "Монгол хэл", "Англи хэл", "Биологи", "Түүх", "Биеийн тамир", "Сонгон: Математик"],
+      "Мягмар": ["Хими", "Математик", "Мэдээлэл зүй", "Мэдээлэл зүй", "Уран зохиол", "Газар зүй", "Англи хэл", "Сонгон: Англи хэл"],
+      "Лхагва": ["Физик", "Хими", "Математик", "Монгол хэл", "Нийгэм", "Биеийн тамир", "Биеийн тамир", "Сонгон: Физик"],
+      "Пүрэв": ["Англи хэл", "Математик", "Уран зохиол", "Түүх", "Биологи", "Хими", "Шоо/Шатар", "Сонгон: Хими"],
+      "Баасан": ["Монгол хэл", "Физик", "Математик", "Газар зүй", "Англи хэл", "Нийгэм", "Ангийн цаг", "Сонгон: Мэдээлэл зүй"]
+    };
+
+    let dutyData = JSON.parse(localStorage.getItem('duty_10v')) || {
+      "Даваа": { names: ["Б. Алтангадас", "Т. Амарбаясгалан"], rating: 5 },
+      "Мягмар": { names: ["Х. Амин-Эрдэнэ", "Ц. Амин-Эрдэнэ"], rating: 4 },
+      "Лхагва": { names: ["М. Анужин", "Э. Бат-Эгшиглэн"], rating: 5 },
+      "Пүрэв": { names: ["Ч. Баярцэцэг", "Л. Баянмөнх"], rating: 5 },
+      "Баасан": { names: ["Билгүүн", "Д. Буянбат"], rating: 4 }
+    };
+
+    let reportsData = JSON.parse(localStorage.getItem('reports_10v')) || [
+      { id: 1, title: "1-р улирлын сурлагын болон ирцийн тайлан", content: "Ангийн нийт сурагчдын ирц 98% байна.", img: "https://picsum.photos/600/300?random=3", video: "", date: "2026-09-12" }
+    ];
+
+    let suggestionsData = JSON.parse(localStorage.getItem('sug_10v')) || [
+      { id: 1, author: "Эцэг эхийн зөвлөл", text: "Спортын өдөрлөгт зориулж ангиараа ижил хувцастай болох саналтай байна.", date: "2026-09-14" }
+    ];
+
+    let teacherNotes = JSON.parse(localStorage.getItem('notes_obj_10v')) || {
+      text: "Энэ 7 хоногт сурагчдын ирц болон дүрэмт хувцсанд анхаарал тавих.",
+      img: ""
+    };
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) return resolve("");
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function getEmbedVideoUrl(url) {
+      if (!url) return '';
+      if (url.includes('youtube.com/watch?v=')) {
+        const videoId = url.split('v=')[1]?.split('&')[0];
+        return `https://www.youtube.com/embed/${videoId}`;
+      } else if (url.includes('youtu.be/')) {
+        const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+      return url;
+    }
+
+    function saveData() {
+      localStorage.setItem('subjects_10v', JSON.stringify(subjects));
+      localStorage.setItem('students_10v', JSON.stringify(students));
+      localStorage.setItem('news_10v', JSON.stringify(newsData));
+      localStorage.setItem('achieve_10v', JSON.stringify(achieveData));
+      localStorage.setItem('schedule_10v', JSON.stringify(scheduleData));
+      localStorage.setItem('duty_10v', JSON.stringify(dutyData));
+      localStorage.setItem('reports_10v', JSON.stringify(reportsData));
+      localStorage.setItem('sug_10v', JSON.stringify(suggestionsData));
+      localStorage.setItem('notes_obj_10v', JSON.stringify(teacherNotes));
+    }
+
+    window.onload = function() {
+      renderNews();
+      renderAchievements();
+      renderSchedule();
+      renderDuty();
+      renderGradesTable();
+      renderReports();
+      renderSuggestions();
+      renderNotes();
+    };
+
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const icon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        icon.className = "fa-solid fa-sun text-amber-500 text-lg";
+      } else {
+        html.classList.add('dark');
+        icon.className = "fa-solid fa-moon text-amber-400 text-lg";
+      }
+    }
+
+    function scrollTabs(amount) {
+      document.getElementById('tabContainer').scrollBy({ left: amount, behavior: 'smooth' });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active-tab', 'bg-cyan-500/20', 'text-cyan-300', 'border-b-2', 'border-cyan-400');
+        btn.classList.add('text-gray-400');
+      });
+
+      document.getElementById('sec-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-' + tabId);
+      activeBtn.classList.add('active-tab', 'bg-cyan-500/20', 'text-cyan-300', 'border-b-2', 'border-cyan-400');
+      activeBtn.classList.remove('text-gray-400');
+    }
+
+    function openTeacherLoginModal() { document.getElementById('teacherModal').classList.remove('hidden'); }
+    function openStudentLoginModal() { document.getElementById('studentModal').classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function loginTeacher() {
+      const pass = document.getElementById('teacherPass').value;
+      if (pass === "2222") {
+        currentUserRole = 'teacher';
+        currentStudentIndex = null;
+        updateRoleUI("Багш", "bg-purple-600 text-white");
+        closeModal('teacherModal');
+        document.getElementById('teacherPass').value = '';
+      } else {
+        alert("Нэвтрэх код буруу байна!");
+      }
+    }
+
+    function loginStudent() {
+      const pass = parseInt(document.getElementById('studentPass').value);
+      const idx = students.findIndex(s => s.id === pass);
+      if (idx !== -1) {
+        currentUserRole = 'student';
+        currentStudentIndex = idx;
+        updateRoleUI(students[idx].name, "bg-cyan-600 text-white");
+        closeModal('studentModal');
+        document.getElementById('studentPass').value = '';
+        switchTab('grades');
+      } else {
+        alert("Нэвтрэх код буруу байна!");
+      }
+    }
+
+    function logout() {
+      currentUserRole = 'guest';
+      currentStudentIndex = null;
+      updateRoleUI("Зочин", "bg-slate-800 text-slate-300");
+    }
+
+    function updateRoleUI(roleText, badgeStyle) {
+      const badge = document.getElementById('roleBadge');
+      badge.textContent = roleText;
+      badge.className = `px-2.5 py-0.5 text-xs rounded-full border border-slate-700 ${badgeStyle}`;
+
+      const authButtons = document.getElementById('authButtons');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const addNewsBtn = document.getElementById('addNewsBtn');
+      const addAchieveBtn = document.getElementById('addAchieveBtn');
+      const editScheduleBtn = document.getElementById('editScheduleBtn');
+      const manageSubjectsBtn = document.getElementById('manageSubjectsBtn');
+      const teacherNotesArea = document.getElementById('teacherNotesArea');
+      const saveNotesBtnWrapper = document.getElementById('saveNotesBtnWrapper');
+      const addReportBtn = document.getElementById('addReportBtn');
+
+      if (currentUserRole !== 'guest') {
+        authButtons.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      } else {
+        authButtons.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      }
+
+      if (currentUserRole === 'teacher') {
+        addNewsBtn.classList.remove('hidden');
+        addAchieveBtn.classList.remove('hidden');
+        editScheduleBtn.classList.remove('hidden');
+        manageSubjectsBtn.classList.remove('hidden');
+        teacherNotesArea.removeAttribute('disabled');
+        saveNotesBtnWrapper.classList.remove('hidden');
+        addReportBtn.classList.remove('hidden');
+      } else {
+        addNewsBtn.classList.add('hidden');
+        addAchieveBtn.classList.add('hidden');
+        editScheduleBtn.classList.add('hidden');
+        manageSubjectsBtn.classList.add('hidden');
+        teacherNotesArea.setAttribute('disabled', 'true');
+        saveNotesBtnWrapper.classList.add('hidden');
+        addReportBtn.classList.add('hidden');
+      }
+
+      renderNews();
+      renderAchievements();
+      renderSchedule();
+      renderDuty();
+      renderGradesTable();
+      renderReports();
+      renderSuggestions();
+      renderNotes();
+    }
+
+    function renderNews() {
+      const container = document.getElementById('newsFeed');
+      container.innerHTML = newsData.map(item => `
+        <div class="bg-slate-900/80 rounded-2xl overflow-hidden border border-white/10 shadow-xl flex flex-col justify-between">
+          <div>
+            ${item.img ? `<img src="${item.img}" class="w-full ${item.ratio === '9:16' ? 'h-80 object-cover' : 'h-48 object-cover'}" />` : ''}
+
+            ${item.video ? (
+              item.video.startsWith('data:video') || item.video.endsWith('.mp4') ?
+                `<video controls class="w-full h-48 object-cover bg-black"><source src="${item.video}"></video>` :
+                `<div class="aspect-video w-full"><iframe src="${getEmbedVideoUrl(item.video)}" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>`
+            ) : ''}
+
+            <div class="p-5 space-y-2">
+              <span class="text-xs text-cyan-400 font-semibold block">${item.date}</span>
+              <h3 class="text-lg font-bold text-white">${item.title}</h3>
+              <p class="text-gray-300 text-sm leading-relaxed">${item.desc}</p>
+
+              ${item.link ? `
+                <div class="pt-2">
+                  <a href="${item.link}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 text-xs font-bold transition border border-cyan-500/30">
+                    <i class="fa-solid fa-link"></i> Холбоос нээх
+                  </a>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+          ${currentUserRole === 'teacher' ? `
+            <div class="p-3 bg-slate-800/50 text-right border-t border-white/5">
+              <button onclick="deleteNews(${item.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderAchievements() {
+      const container = document.getElementById('achieveFeed');
+      container.innerHTML = achieveData.map(item => `
+        <div class="bg-slate-900/80 rounded-2xl overflow-hidden border border-white/10 shadow-xl flex flex-col justify-between">
+          <div>
+            ${item.img ? `<img src="${item.img}" class="w-full ${item.ratio === '9:16' ? 'h-80 object-cover' : 'h-48 object-cover'}" />` : ''}
+            <div class="p-5">
+              <span class="text-xs text-amber-400 font-semibold">${item.date}</span>
+              <h3 class="text-lg font-bold text-white mt-1 mb-2">${item.title}</h3>
+              <p class="text-gray-300 text-sm">${item.desc}</p>
+            </div>
+          </div>
+          ${currentUserRole === 'teacher' ? `
+            <div class="p-3 bg-slate-800/50 text-right">
+              <button onclick="deleteAchievement(${item.id})" class="text-xs px-3 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openPostModal(type) {
+      document.getElementById('postType').value = type;
+      document.getElementById('postModalTitle').textContent = type === 'news' ? 'Мэдээлэл оруулах' : 'Амжилт оруулах';
+      document.getElementById('postImgFile').value = '';
+      document.getElementById('postVideoFile').value = '';
+      document.getElementById('postVideoUrl').value = '';
+      document.getElementById('postLink').value = '';
+      document.getElementById('postModal').classList.remove('hidden');
+    }
+
+    async function savePost() {
+      const type = document.getElementById('postType').value;
+      const title = document.getElementById('postTitle').value;
+      const desc = document.getElementById('postDesc').value;
+      const fileInput = document.getElementById('postImgFile');
+      const videoFileInput = document.getElementById('postVideoFile');
+      const videoUrlInput = document.getElementById('postVideoUrl').value;
+      const linkInput = document.getElementById('postLink').value;
+      const ratio = document.querySelector('input[name="aspectRatio"]:checked').value;
+
+      if (!title) return alert("Гарчиг оруулна уу!");
+
+      let img = "";
+      if (fileInput.files && fileInput.files[0]) {
+        img = await readFileAsBase64(fileInput.files[0]);
+      }
+
+      let video = videoUrlInput.trim();
+      if (videoFileInput.files && videoFileInput.files[0]) {
+        video = await readFileAsBase64(videoFileInput.files[0]);
+      }
+
+      const newItem = {
+        id: Date.now(),
+        title,
+        desc,
+        img,
+        video,
+        link: linkInput.trim(),
+        ratio,
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      if (type === 'news') {
+        newsData.unshift(newItem);
+        renderNews();
+      } else {
+        achieveData.unshift(newItem);
+        renderAchievements();
+      }
+
+      saveData();
+      closeModal('postModal');
+      document.getElementById('postTitle').value = '';
+      document.getElementById('postDesc').value = '';
+      document.getElementById('postVideoUrl').value = '';
+      document.getElementById('postLink').value = '';
+      fileInput.value = '';
+      videoFileInput.value = '';
+    }
+
+    function deleteNews(id) {
+      newsData = newsData.filter(i => i.id !== id);
+      saveData();
+      renderNews();
+    }
+
+    function deleteAchievement(id) {
+      achieveData = achieveData.filter(i => i.id !== id);
+      saveData();
+      renderAchievements();
+    }
+
+    function openScheduleEditModal() {
+      loadScheduleDayInputs();
+      document.getElementById('scheduleEditModal').classList.remove('hidden');
+    }
+
+    function loadScheduleDayInputs() {
+      const selectedDay = document.getElementById('scheduleDaySelect').value;
+      const lessons = scheduleData[selectedDay] || ["", "", "", "", "", "", "", ""];
+      const container = document.getElementById('scheduleInputsContainer');
+
+      container.innerHTML = lessons.map((lesson, idx) => `
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-cyan-300 w-16">${idx === 7 ? 'Сонгон:' : (idx + 1) + '-р цаг:'}</span>
+          <input type="text" data-idx="${idx}" value="${lesson}" class="schedule-inp flex-grow p-2 rounded-xl bg-slate-800 text-white border border-slate-700 text-sm" placeholder="Хичээлийн нэр" />
+        </div>
+      `).join('');
+    }
+
+    function saveScheduleDay() {
+      const selectedDay = document.getElementById('scheduleDaySelect').value;
+      const inputs = document.querySelectorAll('.schedule-inp');
+      let newLessons = [];
+      inputs.forEach(inp => newLessons.push(inp.value.trim()));
+
+      scheduleData[selectedDay] = newLessons;
+      saveData();
+      renderSchedule();
+      closeModal('scheduleEditModal');
+      alert(`${selectedDay} гарагийн хуваарь хадгалагдлаа.`);
+    }
+
+    const colorfulDayStyles = {
+      "Даваа": { cardBg: "from-cyan-900/60 via-blue-900/40 to-slate-900/80 border-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.25)]", header: "from-cyan-400 to-blue-400", badge: "bg-cyan-500/20 text-cyan-300 border-cyan-400/30", numBadge: "bg-cyan-500 text-slate-950", icon: "fa-sun text-cyan-400" },
+      "Мягмар": { cardBg: "from-pink-900/60 via-rose-900/40 to-slate-900/80 border-pink-400/50 shadow-[0_0_20px_rgba(244,63,94,0.25)]", header: "from-pink-400 to-rose-400", badge: "bg-pink-500/20 text-pink-300 border-pink-400/30", numBadge: "bg-pink-500 text-slate-950", icon: "fa-bolt text-pink-400" },
+      "Лхагва": { cardBg: "from-emerald-900/60 via-teal-900/40 to-slate-900/80 border-emerald-400/50 shadow-[0_0_20px_rgba(16,185,129,0.25)]", header: "from-emerald-400 to-teal-400", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30", numBadge: "bg-emerald-500 text-slate-950", icon: "fa-leaf text-emerald-400" },
+      "Пүрэв": { cardBg: "from-amber-900/60 via-orange-900/40 to-slate-900/80 border-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]", header: "from-amber-400 to-orange-400", badge: "bg-amber-500/20 text-amber-300 border-amber-400/30", numBadge: "bg-amber-500 text-slate-950", icon: "fa-fire text-amber-400" },
+      "Баасан": { cardBg: "from-purple-900/60 via-indigo-900/40 to-slate-900/80 border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.25)]", header: "from-purple-400 to-indigo-400", badge: "bg-purple-500/20 text-purple-300 border-purple-400/30", numBadge: "bg-purple-500 text-slate-950", icon: "fa-star text-purple-400" }
+    };
+
+    function renderSchedule() {
+      const container = document.getElementById('scheduleGrid');
+      container.innerHTML = Object.keys(scheduleData).map(day => {
+        const style = colorfulDayStyles[day] || colorfulDayStyles["Даваа"];
+        return `
+          <div class="bg-gradient-to-b ${style.cardBg} backdrop-blur-xl rounded-2xl p-4 border shadow-2xl flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
+            <div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+                <h3 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r ${style.header} uppercase tracking-wider">${day}</h3>
+                <i class="fa-solid ${style.icon} text-lg"></i>
+              </div>
+              <ol class="space-y-2 text-sm">
+                ${scheduleData[day].slice(0, 7).map((sub, i) => `
+                  <li class="flex items-center justify-between bg-slate-950/70 p-2.5 rounded-xl border border-white/5 hover:border-white/20 transition">
+                    <span class="text-xs font-extrabold w-5 h-5 rounded-full ${style.numBadge} flex items-center justify-center">${i+1}</span>
+                    <span class="font-bold text-gray-100">${sub || '-'}</span>
+                  </li>
+                `).join('')}
+              </ol>
+            </div>
+            <div class="mt-4 pt-3 border-t border-white/10 bg-slate-950/80 p-3 rounded-xl text-center border border-white/10">
+              <span class="text-xs text-amber-300 font-extrabold block mb-1">🌟 Үдээс хойш:</span>
+              <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg ${style.badge} border block truncate">${scheduleData[day][7] || 'Сонгон хичээлгүй'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDuty() {
+      const container = document.getElementById('dutyGrid');
+      container.innerHTML = Object.keys(dutyData).map(day => {
+        const item = dutyData[day];
+        const style = colorfulDayStyles[day] || colorfulDayStyles["Даваа"];
+        const stars = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
+        return `
+          <div class="bg-gradient-to-b ${style.cardBg} backdrop-blur-xl rounded-2xl p-4 border shadow-2xl flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
+            <div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+                <h3 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r ${style.header} uppercase tracking-wider">${day}</h3>
+                <i class="fa-solid fa-broom text-lg text-pink-400"></i>
+              </div>
+              <div class="space-y-2 mb-4">
+                ${item.names.map(name => `
+                  <div class="bg-slate-950/80 p-3 rounded-xl text-sm font-bold text-center text-white border border-white/10 shadow-inner flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-sparkles text-amber-400"></i>${name}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="text-center pt-3 border-t border-white/10 bg-slate-950/80 p-3 rounded-xl border border-white/10">
+              <span class="text-xs text-gray-300 font-bold block mb-1">Багшийн үнэлгээ:</span>
+              <span class="text-amber-400 text-xl tracking-widest font-black filter drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">${stars}</span>
+              ${currentUserRole === 'teacher' ? `
+                <button onclick="editDuty('${day}')" class="mt-2.5 w-full text-xs py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold rounded-xl transition shadow-lg">
+                  <i class="fa-solid fa-pen mr-1"></i>Жижүүр ба Үнэлгээ засах
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function editDuty(day) {
+      const item = dutyData[day];
+      const newName1 = prompt(`${day} гарагийн 1-р жижүүр:`, item.names[0]);
+      if (newName1 === null) return;
+      const newName2 = prompt(`${day} гарагийн 2-р жижүүр:`, item.names[1]);
+      if (newName2 === null) return;
+      const newRating = parseInt(prompt(`Үнэлгээ (1-5 одоор):`, item.rating));
+      
+      dutyData[day] = {
+        names: [newName1 || item.names[0], newName2 || item.names[1]],
+        rating: Math.min(Math.max(newRating || 5, 1), 5)
+      };
+      saveData();
+      renderDuty();
+    }
+
+    function calculateAverages() {
+      students.forEach(st => {
+        let sum = 0;
+        let count = 0;
+        subjects.forEach(sub => {
+          if (st.grades[sub] !== undefined) {
+            sum += Number(st.grades[sub]);
+            count++;
+          }
+        });
+        st.avg = count > 0 ? (sum / count) : 0;
+      });
+
+      let sorted = [...students].sort((a, b) => b.avg - a.avg);
+      students.forEach(st => {
+        st.rank = sorted.findIndex(s => s.id === st.id) + 1;
+      });
+    }
+
+    function renderGradesTable() {
+      calculateAverages();
+
+      const thead = document.getElementById('gradeTableHead');
+      const tbody = document.getElementById('gradeTableBody');
+      const tableWrapper = document.getElementById('gradeTableWrapper');
+      const banner = document.getElementById('gradeNoticeBanner');
+
+      if (currentUserRole === 'guest') {
+        tableWrapper.classList.add('hidden');
+        document.getElementById('chartCard').classList.add('hidden');
+        banner.classList.remove('hidden');
+        return;
+      }
+
+      banner.classList.add('hidden');
+      tableWrapper.classList.remove('hidden');
+
+      thead.innerHTML = `
+        <tr>
+          <th class="p-3 text-center">Ранк</th>
+          <th class="p-3">Сурагчийн Нэр</th>
+          ${subjects.map(sub => `<th class="p-3 text-center">${sub}</th>`).join('')}
+          <th class="p-3 text-center bg-indigo-900/50">Дундаж</th>
+          ${currentUserRole === 'teacher' ? `<th class="p-3 text-center no-print">Үйлдэл</th>` : ''}
+        </tr>
+      `;
+
+      let displayStudents = [];
+      if (currentUserRole === 'teacher') {
+        displayStudents = students;
+        document.getElementById('chartCard').classList.add('hidden');
+      } else if (currentUserRole === 'student' && currentStudentIndex !== null) {
+        displayStudents = [students[currentStudentIndex]];
+        renderStudentChart(students[currentStudentIndex]);
+      }
+
+      tbody.innerHTML = displayStudents.map((st) => `
+        <tr class="hover:bg-slate-800/50 transition">
+          <td class="p-3 text-center font-extrabold text-amber-400">#${st.rank}</td>
+          <td class="p-3 font-bold text-white whitespace-nowrap">${st.name}</td>
+          ${subjects.map(sub => `
+            <td class="p-3 text-center font-medium ${st.grades[sub] >= 90 ? 'text-emerald-400 font-bold' : st.grades[sub] < 70 ? 'text-red-400' : 'text-gray-200'}">
+              ${st.grades[sub] !== undefined ? st.grades[sub] : '-'}
+            </td>
+          `).join('')}
+          <td class="p-3 text-center font-black text-cyan-300 bg-indigo-950/40">${st.avg.toFixed(1)}</td>
+          ${currentUserRole === 'teacher' ? `
+            <td class="p-3 text-center no-print">
+              <button onclick="openGradeEditModal(${students.findIndex(s => s.id === st.id)})" class="text-xs px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold">
+                <i class="fa-solid fa-pen mr-1"></i>Дүн засах
+              </button>
+            </td>
+          ` : ''}
+        </tr>
+      `).join('');
+    }
+
+    function renderStudentChart(student) {
+      document.getElementById('chartCard').classList.remove('hidden');
+      document.getElementById('studentChartTitle').textContent = `📊 ${student.name} - Өөрийн сурлагын үзүүлэлт (Ангийн ранк: #${student.rank}, Дундаж: ${student.avg.toFixed(1)})`;
+
+      const ctx = document.getElementById('studentGradeChart').getContext('2d');
+      if (studentChart) studentChart.destroy();
+
+      const labels = subjects;
+      const data = subjects.map(sub => student.grades[sub] || 0);
+
+      studentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Авсан Дүн',
+            data: data,
+            backgroundColor: 'rgba(6, 182, 212, 0.6)',
+            borderColor: 'rgba(6, 182, 212, 1)',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function openSubjectModal() {
+      renderSubjectList();
+      document.getElementById('subjectModal').classList.remove('hidden');
+    }
+
+    function renderSubjectList() {
+      const container = document.getElementById('subjectList');
+      container.innerHTML = subjects.map((sub, idx) => `
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+          <span class="text-white text-sm font-semibold">${sub}</span>
+          <button onclick="removeSubject(${idx})" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function addSubject() {
+      const name = document.getElementById('newSubjectName').value.trim();
+      if (!name) return;
+      if (!subjects.includes(name)) {
+        subjects.push(name);
+        students.forEach(st => st.grades[name] = 85);
+        saveData();
+        renderSubjectList();
+        renderGradesTable();
+        document.getElementById('newSubjectName').value = '';
+      }
+    }
+
+    function removeSubject(idx) {
+      const subName = subjects[idx];
+      subjects.splice(idx, 1);
+      students.forEach(st => delete st.grades[subName]);
+      saveData();
+      renderSubjectList();
+      renderGradesTable();
+    }
+
+    function openGradeEditModal(studentIdx) {
+      const st = students[studentIdx];
+      document.getElementById('gradeStudentIndex').value = studentIdx;
+      document.getElementById('gradeStudentName').textContent = `✏️ ${st.name} - Дүн засах`;
+
+      const container = document.getElementById('gradeInputsContainer');
+      container.innerHTML = subjects.map(sub => `
+        <div>
+          <label class="text-xs text-gray-300 block mb-1">${sub}</label>
+          <input type="number" min="0" max="100" data-sub="${sub}" value="${st.grades[sub] || 0}" class="grade-input w-full p-2.5 rounded-xl bg-slate-800 text-white border border-slate-700 font-bold" />
+        </div>
+      `).join('');
+
+      document.getElementById('gradeEditModal').classList.remove('hidden');
+    }
+
+    function saveStudentGrades() {
+      const idx = document.getElementById('gradeStudentIndex').value;
+      const inputs = document.querySelectorAll('.grade-input');
+      inputs.forEach(inp => {
+        const sub = inp.getAttribute('data-sub');
+        const val = Math.min(Math.max(parseInt(inp.value) || 0, 0), 100);
+        students[idx].grades[sub] = val;
+      });
+
+      saveData();
+      closeModal('gradeEditModal');
+      renderGradesTable();
+    }
+
+    function renderNotes() {
+      document.getElementById('teacherNotesArea').value = teacherNotes.text || "";
+      const imgContainer = document.getElementById('notesImgContainer');
+      const imgPreview = document.getElementById('notesImgPreview');
+
+      if (teacherNotes.img) {
+        imgPreview.src = teacherNotes.img;
+        imgContainer.classList.remove('hidden');
+      } else {
+        imgContainer.classList.add('hidden');
+      }
+    }
+
+    async function saveNotes() {
+      const text = document.getElementById('teacherNotesArea').value;
+      const fileInput = document.getElementById('notesImgFile');
+
+      let img = teacherNotes.img || "";
+      if (fileInput.files && fileInput.files[0]) {
+        img = await readFileAsBase64(fileInput.files[0]);
+      }
+
+      teacherNotes = { text, img };
+      saveData();
+      renderNotes();
+      alert("Тэмдэглэл болон зураг амжилттай хадгалагдлаа.");
+    }
+
+    function renderReports() {
+      const container = document.getElementById('reportsFeed');
+      container.innerHTML = reportsData.map(rep => `
+        <div class="bg-slate-900/80 rounded-2xl p-6 border border-white/10 shadow-xl space-y-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs text-blue-400 font-semibold">${rep.date}</span>
+              <h3 class="text-xl font-bold text-white mt-1">${rep.title}</h3>
+            </div>
+            ${currentUserRole === 'teacher' ? `
+              <button onclick="deleteReport(${rep.id})" class="text-xs px-3 py-1 bg-red-600/80 text-white rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+            ` : ''}
+          </div>
+          <p class="text-gray-300 text-sm leading-relaxed">${rep.content}</p>
+          ${rep.img ? `<img src="${rep.img}" class="rounded-xl w-full max-h-96 object-cover" />` : ''}
+          ${rep.video ? `<div class="p-3 bg-slate-800 rounded-xl text-cyan-400 text-xs truncate"><i class="fa-solid fa-video mr-2"></i>Видео линк: <a href="${rep.video}" target="_blank" class="underline">${rep.video}</a></div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openReportModal() { 
+      document.getElementById('reportImgFile').value = '';
+      document.getElementById('reportModal').classList.remove('hidden'); 
+    }
+
+    async function saveReport() {
+      const title = document.getElementById('reportTitle').value;
+      const content = document.getElementById('reportContent').value;
+      const fileInput = document.getElementById('reportImgFile');
+      const video = document.getElementById('reportVideo').value;
+
+      if (!title) return alert("Гарчиг бичнэ үү!");
+
+      let img = "";
+      if (fileInput.files && fileInput.files[0]) {
+        img = await readFileAsBase64(fileInput.files[0]);
+      }
+
+      reportsData.unshift({ id: Date.now(), title, content, img, video, date: new Date().toISOString().split('T')[0] });
+      saveData();
+      renderReports();
+      closeModal('reportModal');
+      document.getElementById('reportTitle').value = '';
+      document.getElementById('reportContent').value = '';
+      fileInput.value = '';
+    }
+
+    function deleteReport(id) {
+      reportsData = reportsData.filter(r => r.id !== id);
+      saveData();
+      renderReports();
+    }
+
+    function renderSuggestions() {
+      const container = document.getElementById('suggestionsFeed');
+      container.innerHTML = suggestionsData.map(sug => `
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-white/10 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-bold text-purple-300"><i class="fa-solid fa-user-pen mr-1.5"></i>${sug.author}</span>
+              <span class="text-xs text-gray-400">${sug.date}</span>
+            </div>
+            <p class="text-gray-300 text-sm italic">"${sug.text}"</p>
+          </div>
+          ${currentUserRole === 'teacher' ? `
+            <div class="mt-3 pt-2 border-t border-slate-800 text-right">
+              <button onclick="deleteSuggestion(${sug.id})" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash mr-1"></i>Устгах</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openSuggestionModal() { document.getElementById('suggestionModal').classList.remove('hidden'); }
+    function saveSuggestion() {
+      const author = document.getElementById('sugAuthor').value || "Ажиглагч";
+      const text = document.getElementById('sugText').value;
+
+      if (!text) return alert("Саналаа бичнэ үү!");
+
+      suggestionsData.unshift({ id: Date.now(), author, text, date: new Date().toISOString().split('T')[0] });
+      saveData();
+      renderSuggestions();
+      closeModal('suggestionModal');
+      document.getElementById('sugAuthor').value = '';
+      document.getElementById('sugText').value = '';
+    }
+
+    function deleteSuggestion(id) {
+      suggestionsData = suggestionsData.filter(s => s.id !== id);
+      saveData();
+      renderSuggestions();
+    }
+  </script>
+  <script>
+  const SUPABASE_URL = 'https://nkybwoafisbbtsekfprr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_Hy_HZL50A3t7-D6L244nDw_03qLCDqf';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+</body>
+</html>
