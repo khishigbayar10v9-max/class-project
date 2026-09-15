@@ -1210,17 +1210,59 @@
       document.getElementById('sugAuthor').value = '';
       document.getElementById('sugText').value = '';
     }
-
-    function deleteSuggestion(id) {
-      suggestionsData = suggestionsData.filter(s => s.id !== id);
-      saveData();
-      renderSuggestions();
+function deleteSuggestion(id) {
+        suggestionsData = suggestionsData.filter(s => s.id !== id);
+        saveData();
+        renderSuggestions();
     }
-  </script>
-  <script>
-  const SUPABASE_URL = 'https://nkybwoafisbbtsekfprr.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_Hy_HZL50A3t7-D6L244nDw_03qLCDqf';
-  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // --- SUPABASE ХОЛБОЛТ БОЛОН ФУНКЦҮҮД ---
+    const SUPABASE_URL = 'https://nkybwoafisbbtsekfprr.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Hy_HZL50A3t7-D6L244nDw_03qLCDqf';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 1. Мэдээлэл баазаас унших
+    async function loadCategoryData(category) {
+      const { data, error } = await _supabase
+        .from('class_data')
+        .select('*')
+        .eq('category', category)
+        .order('id', { ascending: false });
+
+      if (error) {
+        console.error('Алдаа:', error.message);
+        return [];
+      }
+      return data;
+    }
+
+    // 2. Мэдээлэл бааз руу хадгалах
+    async function saveCategoryData(category, title, content, date) {
+      const { error } = await _supabase
+        .from('class_data')
+        .insert([{ category, title, content, date }]);
+
+      if (error) {
+        alert('Хадгалахад алдаа гарлаа: ' + error.message);
+      } else {
+        alert('Амжилттай хадгалагдлаа!');
+        location.reload();
+      }
+    }
+
+    // 3. Мэдээлэл баазаас устгах
+    async function deleteCategoryData(id) {
+      const { error } = await _supabase
+        .from('class_data')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        alert('Устгахад алдаа гарлаа: ' + error.message);
+      } else {
+        location.reload();
+      }
+    }
 </script>
 </body>
 </html>
